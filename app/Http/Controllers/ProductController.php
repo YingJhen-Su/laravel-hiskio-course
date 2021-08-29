@@ -72,7 +72,12 @@ class ProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+      $data = $this->getData();
+      $form = $request->all();
+      $selectData = $data->where('id', $id)->first();
+      $selectData = $selectData->merge(collect($form));
+
+      return response($selectData);
     }
 
     /**
@@ -83,17 +88,24 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+      $data = $this->getData();
+      $data = $data->filter(function($product) use ($id) {
+        return $product['id'] != $id;
+      });
+
+      return response($data->values());
     }
 
     public function getData() {
       return collect([
         collect([
+          'id'      => 0,
           'title'   => '測試商品一',
           'content' => '這是很棒的商品',
           'price'   => 50
         ]),
         collect([
+          'id'      => 1,
           'title'   => '測試商品二',
           'content' => '這是有點棒的商品',
           'price'   => 30
