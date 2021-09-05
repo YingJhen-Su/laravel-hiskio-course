@@ -29,12 +29,3 @@ Route::group(['middleware' => 'auth:api'], function () {
   Route::get('user', 'AuthController@user');
   Route::get('logout', 'AuthController@logout');
 });
-
-//Route::group([
-//  'middleware' => ['checkValidIp'],
-//  'prefix'     => 'web',
-//  'namespace'  => 'Web'
-//], function() {
-//  Route::get('/index', 'HomeController@index');
-//  Route::post('/print', 'HomeController@print');
-//});

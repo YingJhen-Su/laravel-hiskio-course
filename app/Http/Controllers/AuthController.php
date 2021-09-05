@@ -30,7 +30,7 @@ class AuthController extends Controller
     ]);
 
     if (!Auth::attempt($validatedData)) {
-      return response('授權失敗', 201);
+      return response('授權失敗', 401);
     }
 
     $user = $request->user();
