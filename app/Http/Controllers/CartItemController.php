@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\UpdateCartItem;
+use App\Models\Cart;
+use App\Models\CartItem;
 
 class CartItemController extends Controller
 {
@@ -52,12 +55,10 @@ class CartItemController extends Controller
       }
 
       $validatedData = $validator->validate();
-      DB::table('cart_items')->insert(['cart_id'    => $validatedData['cart_id'],
-                                            'quantity'   => $validatedData['quantity'],
-                                            'product_id' => $validatedData['product_id'],
-                                            'created_at' => now(),
-                                            'updated_at' => now()]);
-      return response()->json(true);
+      $cart = Cart::find($validatedData['cart_id']);
+      $result = $cart->cartItems()->create(['quantity'   => $validatedData['quantity'],
+                                            'product_id' => $validatedData['product_id']]);
+      return response()->json($result);
     }
 
     /**
@@ -89,12 +90,12 @@ class CartItemController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCartItem $request, $id)
     {
-      $form = $request->all();
-      DB::table('cart_items')->where('id', $id)
-                                  ->update(['quantity'   => $form['quantity'],
-                                            'updated_at' => now()]);
+      $form = $request->validated();
+      $item = CartItem::find($id);
+      $item->fill(['quantity' => $form['quantity']]);
+      $item->save();
       return response()->json(true);
     }
 
@@ -106,8 +107,7 @@ class CartItemController extends Controller
      */
     public function destroy($id)
     {
-      DB::table('cart_items')->where('id', $id)
-                                  ->delete();
+      CartItem::find($id)->delete();
       return response()->json(true);
     }
 }
