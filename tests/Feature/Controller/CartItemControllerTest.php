@@ -6,6 +6,7 @@
   use Tests\TestCase;
   use App\Models\User;
   use App\Models\Product;
+  use App\Models\Cart;
   use App\Models\CartItem;
   use Laravel\Passport\Passport;
 
@@ -31,17 +32,22 @@
      */
     public function testStore()
     {
-      $cart = $this->fakeUser->carts()->create();
-      $product = Product::create(['title'    => 'test product',
-                                  'content'  => 'cool',
-                                  'price'    => 10,
-                                  'quantity' => 10]);
+      $cart = Cart::factory()->create();
+      $product = Product::factory()->create();
       $response = $this->call(
         'POST',
         'cart-items',
         ['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 2]
       );
       $response->assertOk();
+
+      $product = Product::factory()->less()->create();
+      $response = $this->call(
+        'POST',
+        'cart-items',
+        ['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 10]
+      );
+      $this->assertEquals($product->title.'數量不足', $response->getContent());
 
       $response = $this->call(
         'POST',
@@ -53,12 +59,8 @@
 
     public function testUpdate()
     {
-      $cart = $this->fakeUser->carts()->create();
-      $product = Product::create(['title'    => 'test product',
-                                  'content'  => 'cool',
-                                  'price'    => 10,
-                                  'quantity' => 10]);
-      $cartItem = $cart->cartItems()->create(['product_id' => $product->id, 'quantity' => 10]);
+
+      $cartItem = CartItem::factory()->create();
       $response = $this->call(
         'PUT',
         'cart-items/'.$cartItem->id,
@@ -72,11 +74,10 @@
 
     public function testDestroy()
     {
-      $cart = $this->fakeUser->carts()->create();
-      $product = Product::create(['title'    => 'test product',
-                                  'content'  => 'cool',
-                                  'price'    => 10,
-                                  'quantity' => 10]);
+      $cart = Cart::factory()->create([
+        'user_id' => $this->fakeUser->id
+      ]);
+      $product = Product::factory()->make();
       $cartItem = $cart->cartItems()->create(['product_id' => $product->id, 'quantity' => 10]);
       $response = $this->call(
         'DELETE',
